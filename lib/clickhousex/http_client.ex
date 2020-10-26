@@ -29,18 +29,18 @@ defmodule Clickhousex.HTTPClient do
     with {:ok, %{status_code: 200, body: body}} <-
            HTTPoison.post(base_address, post_body, @req_headers, http_opts),
          {:command, :selected} <- {:command, command},
-         {:ok, %{column_names: column_names, rows: rows}} <- decode_body(body) do
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
       {:ok, command, column_names, rows}
     else
+      {:command, :created} -> {:ok, :created}
       {:command, :updated} -> {:ok, :updated, 1}
       {:ok, response} -> {:error, response.body}
       {:error, %{reason: reason}} -> {:error, reason}
+      {:error, error} -> {:error, error}
     end
   end
 
-  def decode_body(_ = ""), do: {:ok, %{column_names: [], rows: []}}
-  def decode_body(body), do: @codec.decode(body)
-
+  defp parse_command(%Query{type: :create}), do: :created
   defp parse_command(%Query{type: :select}), do: :selected
   defp parse_command(_), do: :updated
 
