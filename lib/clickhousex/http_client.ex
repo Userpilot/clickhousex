@@ -32,12 +32,15 @@ defmodule Clickhousex.HTTPClient do
          {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
       {:ok, command, column_names, rows}
     else
+      {:command, :created} -> {:ok, :created}
       {:command, :updated} -> {:ok, :updated, 1}
       {:ok, response} -> {:error, response.body}
-      {:error, error} -> {:error, error.reason}
+      {:error, %{reason: reason}} -> {:error, reason}
+      {:error, error} -> {:error, error}
     end
   end
 
+  defp parse_command(%Query{type: :create}), do: :created
   defp parse_command(%Query{type: :select}), do: :selected
   defp parse_command(_), do: :updated
 

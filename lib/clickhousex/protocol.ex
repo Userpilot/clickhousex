@@ -202,6 +202,16 @@ defmodule Clickhousex.Protocol do
           state
         }
 
+      {:ok, :created} ->
+        {
+          :ok,
+          query,
+          %Clickhousex.Result{
+            command: :created
+          },
+          state
+        }
+
       {:error, %Error{code: :connection_exception} = reason} ->
         {:disconnect, reason, state}
 
