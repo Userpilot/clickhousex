@@ -80,7 +80,6 @@ defmodule Clickhousex.Codec.Values do
   defp encode_param(_query, %DateTime{} = datetime) do
     iso_date =
       datetime
-      |> DateTime.truncate(:second)
       |> DateTime.to_iso8601()
       |> String.replace("Z", "")
 
