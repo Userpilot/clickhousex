@@ -34,12 +34,12 @@ defmodule ClickhouseCase do
 
   def select(ctx, select_statement, params) do
     select_statement = parameterize(select_statement, ctx)
-    {:ok, _} = Clickhousex.query(ctx.client, select_statement, params)
+    Clickhousex.query(ctx.client, select_statement, params)
   end
 
   def insert(ctx, insert_statement, values) do
     insert_statement = parameterize(insert_statement, ctx)
-    {:ok, _} = Clickhousex.query(ctx.client, insert_statement, values)
+    Clickhousex.query(ctx.client, insert_statement, values)
   end
 
   defp parameterize(query, ctx) do

@@ -124,6 +124,8 @@ defmodule Clickhousex.Codec.RowBinary do
     {:array, rest_type}
   end
 
+  defp to_type("DateTime64(" <> _), do: :datetime
+
   @clickhouse_mappings [
     {"Int64", :i64},
     {"Int32", :i32},

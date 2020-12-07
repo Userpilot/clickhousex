@@ -83,7 +83,8 @@ defmodule Clickhousex.Codec.JSONTest do
       uuid_val UUID,
 
       date_val Date,
-      date_time_val DateTime
+      date_time_val DateTime,
+      date_time_64_val DateTime64(6)
     )
 
     ENGINE = Memory
@@ -92,7 +93,8 @@ defmodule Clickhousex.Codec.JSONTest do
     {:ok, _} = schema(ctx, create_statement)
 
     date = Date.utc_today()
-    datetime = DateTime.utc_now()
+    datetime = DateTime.utc_now() |> DateTime.truncate(:second)
+    datetime64 = DateTime.utc_now()
 
     row = [
       329,
@@ -109,22 +111,22 @@ defmodule Clickhousex.Codec.JSONTest do
       "hello",
       "f3e592bf-beba-411e-8a77-668ef76b1957",
       date,
-      datetime
+      datetime,
+      datetime64
     ]
 
     assert {:ok, %Result{command: :updated, num_rows: 1}} =
              insert(
                ctx,
-               "INSERT INTO {{table}} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+               "INSERT INTO {{table}} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                row
              )
 
     assert {:ok, %Result{rows: rows}} = select_all(ctx)
 
-    naive_datetime =
-      datetime
-      |> DateTime.to_naive()
-      |> NaiveDateTime.truncate(:second)
+    naive_datetime = DateTime.to_naive(datetime)
+
+    naive_datetime64 = DateTime.to_naive(datetime64)
 
     assert [
              [
@@ -142,7 +144,8 @@ defmodule Clickhousex.Codec.JSONTest do
                "hello",
                "f3e592bf-beba-411e-8a77-668ef76b1957",
                ^date,
-               ^naive_datetime
+               ^naive_datetime,
+               ^naive_datetime64
              ]
            ] = rows
   end
