@@ -87,9 +87,7 @@ defmodule Clickhousex.Codec.Values do
   end
 
   defp encode_param(_query, %NaiveDateTime{} = naive_datetime) do
-    naive =
-      naive_datetime
-      |> NaiveDateTime.to_iso8601()
+    naive = NaiveDateTime.to_iso8601(naive_datetime)
 
     "'#{naive}'"
   end
