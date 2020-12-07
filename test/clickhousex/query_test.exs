@@ -74,7 +74,7 @@ defmodule Clickhousex.QueryTest do
     assert {:ok, %Result{}} = schema(ctx, create_statement)
 
     date = Date.utc_today()
-    datetime = DateTime.utc_now()
+    datetime = DateTime.utc_now() |> DateTime.truncate(:second)
 
     assert {:ok, %Result{command: :updated, num_rows: 1}} =
              insert(

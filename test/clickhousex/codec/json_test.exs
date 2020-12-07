@@ -92,7 +92,7 @@ defmodule Clickhousex.Codec.JSONTest do
     {:ok, _} = schema(ctx, create_statement)
 
     date = Date.utc_today()
-    datetime = DateTime.utc_now()
+    datetime = DateTime.utc_now() |> DateTime.truncate(:second)
 
     row = [
       329,
