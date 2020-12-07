@@ -66,7 +66,7 @@ defmodule Clickhousex.Codec.JSON do
     end
   end
 
-  defp to_native("DateTime(" <> _, value) do
+  defp to_native("DateTime64(" <> _, value) do
     with {:ok, naive} <- NaiveDateTime.from_iso8601(value) do
       naive
     end
