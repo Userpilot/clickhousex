@@ -47,6 +47,18 @@ defmodule Clickhousex.Codec.JSON do
     Enum.map(value, &to_native(type, &1))
   end
 
+  defp to_native("Tuple(" <> types, values) do
+    types =
+      types
+      |> String.replace_suffix(")", "")
+      |> String.split(", ")
+
+    values
+    |> Enum.zip(types)
+    |> Enum.map(fn {value, type} -> to_native(type, value) end)
+    |> List.to_tuple()
+  end
+
   defp to_native("Float" <> _, value) when is_integer(value) do
     1.0 * value
   end
