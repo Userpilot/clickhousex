@@ -88,8 +88,8 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
   defp query_type(statement) do
     cond do
       Regex.match?(@create_query_regex, statement) -> :create
-      Regex.match?(@select_query_regex, statement) -> :select
       Regex.match?(@insert_query_regex, statement) -> :insert
+      Regex.match?(@select_query_regex, statement) -> :select
       Regex.match?(@alter_query_regex, statement) -> :alter
       true -> :update
     end
