@@ -91,7 +91,7 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
       Regex.match?(@insert_query_regex, statement) -> :insert
       Regex.match?(@select_query_regex, statement) -> :select
       Regex.match?(@alter_query_regex, statement) -> :alter
-      true -> :update
+      :else -> :unknown
     end
   end
 end

@@ -19,7 +19,7 @@ defmodule Clickhousex do
   @type conn :: DBConnection.conn()
 
   @timeout 60_000
-  def timeout(), do: @timeout
+  def timeout, do: @timeout
 
   ### PUBLIC API ###
 
@@ -52,21 +52,15 @@ defmodule Clickhousex do
   end
 
   @spec query(DBConnection.conn(), binary(), list, Keyword.t()) ::
-          {:ok, Clickhousex.Result.t()} | {:error, Exception.t()}
-  def query(conn, statement, params, opts \\ []) do
-    query = %Query{name: "", statement: IO.iodata_to_binary(statement)}
-
-    with {:ok, _, result} <- DBConnection.prepare_execute(conn, query, params, opts) do
-      {:ok, result}
-    end
+          {:ok, iodata(), Clickhousex.Result.t()}
+  def query(conn, statement, params \\ [], opts \\ []) do
+    DBConnection.prepare_execute(conn, %Query{name: "", statement: statement}, params, opts)
   end
 
-  @spec query!(DBConnection.conn(), binary(), list, Keyword.t()) :: Clickhousex.Result.t()
-  def query!(conn, statement, params, opts \\ []) do
-    case query(conn, statement, params, opts) do
-      {:ok, result} -> result
-      {:error, err} -> raise err
-    end
+  @spec query!(DBConnection.conn(), binary(), list, Keyword.t()) ::
+          {iodata(), Clickhousex.Result.t()}
+  def query!(conn, statement, params \\ [], opts \\ []) do
+    DBConnection.prepare_execute!(conn, %Query{name: "", statement: statement}, params, opts)
   end
 
   ## Helpers

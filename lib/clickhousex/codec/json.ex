@@ -1,19 +1,40 @@
 defmodule Clickhousex.Codec.JSON do
-  @behaviour Clickhousex.Codec
+  @moduledoc """
+  `Clickhousex.Codec` implementation for JSON output format.
 
-  defdelegate encode(query, replacements, params), to: Clickhousex.Codec.Values
+  See [JSON][1], [JSONCompact][2].
 
-  @impl Clickhousex.Codec
+  [1]: https://clickhouse.tech/docs/en/interfaces/formats/#json
+  [2]: https://clickhouse.tech/docs/en/interfaces/formats/#jsoncompact
+  """
+
+  alias Clickhousex.Codec
+  @behaviour Codec
+
+  @impl Codec
+  defdelegate encode(query, replacements, params), to: Codec.Values
+
+  @impl Codec
   def request_format do
     "Values"
   end
 
-  @impl Clickhousex.Codec
+  @impl Codec
   def response_format do
     "JSONCompact"
   end
 
-  @impl Clickhousex.Codec
+  @impl Codec
+  def new do
+    []
+  end
+
+  @impl Codec
+  def append(state, data) do
+    [state, data]
+  end
+
+  @impl Codec
   def decode(response) do
     with {:ok, %{"meta" => meta, "data" => data, "rows" => row_count}} <- Jason.decode(response) do
       column_names = Enum.map(meta, & &1["name"])

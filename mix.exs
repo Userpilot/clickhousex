@@ -4,34 +4,33 @@ defmodule Clickhousex.Mixfile do
   def project do
     [
       app: :clickhousex,
-      version: "0.4.0",
+      version: "0.5.0",
       elixir: "~> 1.5",
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
-      elixirc_paths: elixirc_paths(Mix.env()),
-      source_url: "https://github.com/appodeal/clickhousex"
+      source_url: "https://github.com/clickhouse-elixir/clickhousex"
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "priv/repo", "test/support"]
-  defp elixirc_paths(_), do: ["lib", "priv/repo"]
-
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  defp elixirc_paths(:test), do: ["lib", "test"]
+  defp elixirc_paths(_), do: ["lib"]
+
   defp deps do
     [
-      {:db_connection, "~> 2.2"},
-      {:httpoison, "~> 1.5"},
-      {:jason, "~> 1.2.2"},
-      {:ex_doc, "~> 0.19", only: :dev},
-      {:benchee, "~> 0.14.0", only: [:dev, :test]},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false}
+      {:db_connection, "~> 2.0"},
+      {:mint, "~> 1.0"},
+      {:castore, "~> 0.1"},
+      {:jason, "~> 1.0"},
+      {:ex_doc, "~> 0.22", only: :dev},
+      {:benchee, "~> 1.0", only: [:dev, :test]},
+      {:credo, "~> 1.5", only: :dev}
     ]
   end
 
@@ -41,7 +40,7 @@ defmodule Clickhousex.Mixfile do
       description: description(),
       maintainers: maintainers(),
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/appodeal/clickhousex"}
+      links: %{"GitHub" => "https://github.com/clickhouse-elixir/clickhousex"}
     ]
   end
 
@@ -50,6 +49,15 @@ defmodule Clickhousex.Mixfile do
   end
 
   defp maintainers do
-    ["Roman Chudov", "Konstantin Grabar", "Ivan Zinoviev", "Evgeniy Shurmin", "Alexey Lukyanov"]
+    [
+      "Roman Chudov",
+      "Konstantin Grabar",
+      "Ivan Zinoviev",
+      "Evgeniy Shurmin",
+      "Alexey Lukyanov",
+      "Yaroslav Rogov",
+      "Ivan Sokolov",
+      "Georgy Sychev"
+    ]
   end
 end

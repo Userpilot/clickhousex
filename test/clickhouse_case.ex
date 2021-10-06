@@ -1,5 +1,10 @@
 defmodule ClickhouseCase do
+  @moduledoc """
+  Test Case and helpers for testing Clickhousex.
+  """
+
   use ExUnit.CaseTemplate
+  alias Clickhousex, as: CH
 
   def database(ctx) do
     ctx.case
@@ -21,7 +26,7 @@ defmodule ClickhouseCase do
   def schema(ctx, create_statement) do
     create_statement = parameterize(create_statement, ctx)
 
-    Clickhousex.query(ctx.client, create_statement, [])
+    CH.query(ctx.client, create_statement, [])
   end
 
   def select_all(ctx) do
@@ -34,12 +39,12 @@ defmodule ClickhouseCase do
 
   def select(ctx, select_statement, params) do
     select_statement = parameterize(select_statement, ctx)
-    Clickhousex.query(ctx.client, select_statement, params)
+    {:ok, _, _} = CH.query(ctx.client, select_statement, params)
   end
 
   def insert(ctx, insert_statement, values) do
     insert_statement = parameterize(insert_statement, ctx)
-    Clickhousex.query(ctx.client, insert_statement, values)
+    {:ok, _, _} = CH.query(ctx.client, insert_statement, values)
   end
 
   defp parameterize(query, ctx) do
@@ -51,6 +56,8 @@ defmodule ClickhouseCase do
 
   using do
     quote do
+      require unquote(__MODULE__)
+
       import unquote(__MODULE__),
         only: [
           schema: 2,
@@ -63,9 +70,11 @@ defmodule ClickhouseCase do
   end
 
   setup_all do
-    {:ok, client} = Clickhousex.start_link([])
+    hostname = System.get_env("test_db_hostname") || "localhost"
 
-    {:ok, client: client}
+    with {:ok, client} <- start_supervised({Clickhousex, hostname: hostname}) do
+      {:ok, client: client}
+    end
   end
 
   setup %{client: client} = ctx do
@@ -75,7 +84,7 @@ defmodule ClickhouseCase do
       Clickhousex.query!(client, "DROP DATABASE IF EXISTS #{db_name}", [])
     end)
 
-    {:ok, _} = Clickhousex.query(client, "CREATE DATABASE #{db_name}", [])
+    {:ok, _, _} = Clickhousex.query(client, "CREATE DATABASE #{db_name}", [])
 
     {:ok, client: client}
   end

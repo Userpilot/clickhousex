@@ -8,14 +8,13 @@ defmodule Clickhousex.TableStorageTest do
     CREATE TABLE {{table}} (id Int32) ENGINE = Memory
     """
 
-    assert {:ok, %Result{}} = schema(ctx, create_statement)
+    assert {:ok, _, %Result{}} = schema(ctx, create_statement)
 
-    assert {:ok, %Result{}} = schema(ctx, "DROP TABLE {{ table }}")
+    assert {:ok, _, %Result{}} = schema(ctx, "DROP TABLE {{ table }}")
   end
 
   test "returns correct error when dropping table that doesn't exist", ctx do
-    assert {:error, %{code: :base_table_or_view_not_found}} =
-             schema(ctx, "DROP TABLE table_storage_test.not_exist")
+    assert {:error, %{code: :base_table_or_view_not_found}} = schema(ctx, "DROP TABLE table_storage_test.not_exist")
   end
 
   test "returns correct error when creating a table that already exists", ctx do
@@ -24,7 +23,7 @@ defmodule Clickhousex.TableStorageTest do
     (id Int32) ENGINE = Memory
     """
 
-    assert {:ok, %Result{}} = schema(ctx, create_statement)
+    assert {:ok, _, %Result{}} = schema(ctx, create_statement)
     assert {:error, %{code: :table_already_exists}} = schema(ctx, create_statement)
   end
 end

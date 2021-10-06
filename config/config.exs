@@ -1,3 +1,3 @@
 use Mix.Config
 
-# config :clickhousex, codec: Clickhousex.Codec.RowBinary
+config :clickhousex, codec: Clickhousex.Codec.RowBinary
