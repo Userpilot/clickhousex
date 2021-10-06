@@ -24,6 +24,7 @@ defmodule Clickhousex.Protocol do
   @ping_params DBConnection.Query.encode(@ping_query, [], [])
 
   @doc false
+  @impl DBConnection
   @spec connect(opts :: Keyword.t()) :: {:ok, state} | {:error, Exception.t()}
   def connect(opts) do
     scheme = opts[:scheme] || :http
@@ -113,32 +114,39 @@ defmodule Clickhousex.Protocol do
   end
 
   @doc false
+  @impl DBConnection
   def handle_declare(_query, _params, _opts, state) do
     {:error, :cursors_not_supported, state}
   end
 
   @doc false
+  @impl DBConnection
   def handle_deallocate(_query, _cursor, _opts, state) do
     {:error, :cursors_not_supported, state}
   end
 
+  @doc false
+  @impl DBConnection
   def handle_fetch(_query, _cursor, _opts, state) do
     {:error, :cursors_not_supported, state}
   end
 
   @doc false
+  @impl DBConnection
   @spec handle_begin(opts :: Keyword.t(), state) :: {:ok, result, state}
   def handle_begin(_opts, state) do
     {:ok, %Clickhousex.Result{}, state}
   end
 
   @doc false
+  @impl DBConnection
   @spec handle_close(query, Keyword.t(), state) :: {:ok, result, state}
   def handle_close(_query, _opts, state) do
     {:ok, %Clickhousex.Result{}, state}
   end
 
   @doc false
+  @impl DBConnection
   @spec handle_commit(opts :: Keyword.t(), state) :: {:ok, result, state}
   def handle_commit(_opts, state) do
     {:ok, %Clickhousex.Result{}, state}
@@ -151,6 +159,7 @@ defmodule Clickhousex.Protocol do
   end
 
   @doc false
+  @impl DBConnection
   @spec handle_rollback(opts :: Keyword.t(), state) :: {:ok, result, state}
   def handle_rollback(_opts, state) do
     {:ok, %Clickhousex.Result{}, state}
@@ -200,8 +209,7 @@ defmodule Clickhousex.Protocol do
           %{state | conn: conn}
         }
 
-      # {:ok, :created} ->
-      {:ok, conn, {command, columns, rows}} ->
+      {:ok, conn, {_command, _columns, _rows}} ->
         {
           :ok,
           query,
@@ -213,7 +221,6 @@ defmodule Clickhousex.Protocol do
     end
   end
 
-  @doc false
   defp handle_errors({:error, conn, reason}) do
     {:error, conn, Error.exception(reason)}
   end
