@@ -78,12 +78,6 @@ defmodule Clickhousex.Protocol do
   end
 
   @impl DBConnection
-  @spec checkin(state) :: {:ok, state}
-  def checkin(state) do
-    {:ok, state}
-  end
-
-  @impl DBConnection
   @spec checkout(state) :: {:ok, state}
   def checkout(state) do
     {:ok, state}
