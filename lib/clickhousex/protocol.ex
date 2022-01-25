@@ -110,19 +110,19 @@ defmodule Clickhousex.Protocol do
   @doc false
   @impl DBConnection
   def handle_declare(_query, _params, _opts, state) do
-    {:error, :cursors_not_supported, state}
+    {:error, Error.exception(:cursors_not_supported), state}
   end
 
   @doc false
   @impl DBConnection
   def handle_deallocate(_query, _cursor, _opts, state) do
-    {:error, :cursors_not_supported, state}
+    {:error, Error.exception(:cursors_not_supported), state}
   end
 
   @doc false
   @impl DBConnection
   def handle_fetch(_query, _cursor, _opts, state) do
-    {:error, :cursors_not_supported, state}
+    {:error, Error.exception(:cursors_not_supported), state}
   end
 
   @doc false
@@ -199,16 +199,6 @@ defmodule Clickhousex.Protocol do
             columns: ["count"],
             rows: [[count]],
             num_rows: 1
-          },
-          %{state | conn: conn}
-        }
-
-      {:ok, conn, {_command, _columns, _rows}} ->
-        {
-          :ok,
-          query,
-          %Clickhousex.Result{
-            command: :created
           },
           %{state | conn: conn}
         }

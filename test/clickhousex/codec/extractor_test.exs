@@ -121,7 +121,7 @@ defmodule Clickhousex.Codec.ExtractorTest do
     test "it should be able to extract floats" do
       for type <- ~w(f64 f32)a do
         s = encode(type, 0.24)
-        assert {:ok, val, <<>>} = Extractors.extract(s, type)
+        assert {:ok, _val, <<>>} = Extractors.extract(s, type)
       end
     end
   end
@@ -132,7 +132,7 @@ defmodule Clickhousex.Codec.ExtractorTest do
           type = {:nullable, base_type} do
         val = :rand.uniform(127)
         s = encode(type, val)
-        assert {:ok, val, <<>>} = Extractors.extract(s, type)
+        assert {:ok, ^val, <<>>} = Extractors.extract(s, type)
 
         s = encode(type, nil)
         assert {:ok, nil, <<>>} = Extractors.extract(s, type)

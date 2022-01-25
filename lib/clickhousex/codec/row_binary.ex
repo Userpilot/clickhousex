@@ -40,7 +40,7 @@ defmodule Clickhousex.Codec.RowBinary do
 
   @impl Codec
   def decode(state(column_names: column_names, rows: rows, count: count)) do
-    {:ok, %{column_names: column_names, rows: Enum.reverse(rows), count: count}}
+    {:ok, %{column_names: column_names, rows: Enum.reverse(rows), row_count: count}}
   end
 
   def decode(nil) do
