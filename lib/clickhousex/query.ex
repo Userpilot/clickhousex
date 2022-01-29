@@ -34,9 +34,6 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
 
   @codec Application.get_env(:clickhousex, :codec, Clickhousex.Codec.JSON)
 
-  def parse(%{statement: statement} = query, opts) when is_list(statement),
-    do: parse(%{query | statement: IO.iodata_to_binary(statement)}, opts)
-
   def parse(%{statement: statement} = query, _opts) do
     param_count =
       statement
