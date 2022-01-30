@@ -51,16 +51,21 @@ defmodule Clickhousex do
     DBConnection.child_spec(Clickhousex.Protocol, opts)
   end
 
-  @spec query(DBConnection.conn(), binary(), list, Keyword.t()) ::
-          {:ok, iodata(), Clickhousex.Result.t()}
+  @spec query(DBConnection.conn(), iodata(), list, Keyword.t()) ::
+          {:ok, Clickhousex.Result.t()} | {:error, Exception.t()}
   def query(conn, statement, params \\ [], opts \\ []) do
-    DBConnection.prepare_execute(conn, %Query{name: "", statement: IO.iodata_to_binary(statement)}, params, opts)
+    with query <- %Query{name: "", statement: IO.iodata_to_binary(statement)},
+         {:ok, _query, result} <- DBConnection.prepare_execute(conn, query, params, opts) do
+      {:ok, result}
+    end
   end
 
-  @spec query!(DBConnection.conn(), binary(), list, Keyword.t()) ::
-          {iodata(), Clickhousex.Result.t()}
+  @spec query!(DBConnection.conn(), iodata(), list, Keyword.t()) :: Clickhousex.Result.t()
   def query!(conn, statement, params \\ [], opts \\ []) do
-    DBConnection.prepare_execute!(conn, %Query{name: "", statement: IO.iodata_to_binary(statement)}, params, opts)
+    case query(conn, statement, params, opts) do
+      {:ok, result} -> result
+      {:error, err} -> raise err
+    end
   end
 
   ## Helpers
