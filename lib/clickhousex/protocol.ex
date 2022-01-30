@@ -202,6 +202,16 @@ defmodule Clickhousex.Protocol do
           },
           %{state | conn: conn}
         }
+
+      {:ok, conn, :created} ->
+        {
+          :ok,
+          query,
+          %Clickhousex.Result{
+            command: :created
+          },
+          %{state | conn: conn}
+        }
     end
   end
 
