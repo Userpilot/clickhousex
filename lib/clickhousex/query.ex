@@ -32,17 +32,25 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
   @insert_query_regex ~r/\bINSERT\b/i
   @alter_query_regex ~r/\bALTER\b/i
 
+  @escaped_question_mark_literal "\\?"
+
   @codec Application.get_env(:clickhousex, :codec, Clickhousex.Codec.JSON)
 
   def parse(%{statement: statement} = query, _opts) do
     param_count =
       statement
+      |> String.replace(@escaped_question_mark_literal, "")
       |> String.codepoints()
       |> Enum.count(fn s -> s == "?" end)
 
     query_type = query_type(statement)
 
-    %{query | param_count: param_count, type: query_type}
+    %{
+      query
+      | type: query_type,
+        param_count: param_count,
+        statement: String.replace(@escaped_question_mark_literal, "?")
+    }
   end
 
   def describe(query, _opts) do
