@@ -1,5 +1,6 @@
 defmodule Clickhousex.HTTPClient do
   alias Clickhousex.Query
+  alias Clickhousex.HTTPRequest
   @moduledoc false
 
   @codec Application.get_env(:clickhousex, :codec, Clickhousex.Codec.JSON)
@@ -13,6 +14,32 @@ defmodule Clickhousex.HTTPClient do
   def send(query, request, base_address, timeout, username, password, database) do
     opts = [hackney: [basic_auth: {username, password}], timeout: timeout, recv_timeout: timeout]
     send_p(query, request, base_address, database, opts)
+  end
+
+  defp send_p(
+         %Query{type: :select, param_count: 0} = query,
+         %HTTPRequest{} = request,
+         base_address,
+         database,
+         opts
+       ) do
+    command = parse_command(query)
+
+    http_headers =
+      build_http_post_headers(database: database, response_format: @codec.response_format())
+
+    with {:ok, %{status_code: 200, body: body}} <-
+           HTTPoison.post(base_address, request.post_data, http_headers, opts),
+         {:command, :selected} <- {:command, command},
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
+      {:ok, command, column_names, rows}
+    else
+      {:command, :created} -> {:ok, :created}
+      {:command, :updated} -> {:ok, :updated, 1}
+      {:ok, response} -> {:error, response.body}
+      {:error, %{reason: reason}} -> {:error, reason}
+      {:error, error} -> {:error, error}
+    end
   end
 
   defp send_p(query, request, base_address, database, opts) do
@@ -50,5 +77,14 @@ defmodule Clickhousex.HTTPClient do
 
   defp maybe_append_format(_, request) do
     [request.post_data]
+  end
+
+  defp build_http_post_headers(database: database, response_format: response_format) do
+    @req_headers
+    |> Enum.into(%{})
+    |> Map.merge(%{
+      "X-ClickHouse-Database" => database,
+      "X-ClickHouse-Format" => response_format
+    })
   end
 end
