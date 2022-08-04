@@ -27,10 +27,11 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
   alias Clickhousex.HTTPRequest
 
   @values_regex ~r/VALUES/i
-  @create_query_regex ~r/\bCREATE\b/i
   @select_query_regex ~r/\bSELECT\b/i
-  @insert_query_regex ~r/\bINSERT\b/i
   @alter_query_regex ~r/\bALTER\b/i
+
+  @create_query_keyword "CREATE"
+  @insert_query_keyword "INSERT"
 
   @escaped_question_mark_literal "\\?"
 
@@ -109,12 +110,21 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
 
   defp query_type(statement) do
     cond do
-      Regex.match?(@create_query_regex, statement) -> :create
-      Regex.match?(@insert_query_regex, statement) -> :insert
+      starts_with_keyword?(statement, @create_query_keyword) -> :create
+      starts_with_keyword?(statement, @insert_query_keyword) -> :insert
       Regex.match?(@select_query_regex, statement) -> :select
       Regex.match?(@alter_query_regex, statement) -> :alter
       true -> :update
     end
+  end
+
+  defp starts_with_keyword?(statement, keyword) do
+    downcased_keyword = String.downcase(keyword)
+
+    statement
+    |> String.trim_leading()
+    |> String.downcase()
+    |> String.starts_with?(downcased_keyword)
   end
 end
 
