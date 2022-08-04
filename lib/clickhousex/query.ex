@@ -110,27 +110,21 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
 
   defp query_type(statement) do
     cond do
-      statement
-      |> String.trim_leading()
-      |> String.downcase()
-      |> String.starts_with?(String.downcase(@create_query_keyword)) ->
-        :create
-
-      statement
-      |> String.trim_leading()
-      |> String.downcase()
-      |> String.starts_with?(String.downcase(@insert_query_keyword)) ->
-        :insert
-
-      Regex.match?(@select_query_regex, statement) ->
-        :select
-
-      Regex.match?(@alter_query_regex, statement) ->
-        :alter
-
-      true ->
-        :update
+      starts_with_keyword?(statement, @create_query_keyword) -> :create
+      starts_with_keyword?(statement, @insert_query_keyword) -> :insert
+      Regex.match?(@select_query_regex, statement) -> :select
+      Regex.match?(@alter_query_regex, statement) -> :alter
+      true -> :update
     end
+  end
+
+  defp starts_with_keyword?(statement, keyword) do
+    downcased_keyword = String.downcase(keyword)
+
+    statement
+    |> String.trim_leading()
+    |> String.downcase()
+    |> String.starts_with?(downcased_keyword)
   end
 end
 
