@@ -111,12 +111,14 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
   defp query_type(statement) do
     cond do
       statement
-      |> normalize_query_statement()
+      |> String.trim_leading()
+      |> String.downcase()
       |> String.starts_with?(String.downcase(@create_query_keyword)) ->
         :create
 
       statement
-      |> normalize_query_statement()
+      |> String.trim_leading()
+      |> String.downcase()
       |> String.starts_with?(String.downcase(@insert_query_keyword)) ->
         :insert
 
@@ -130,12 +132,6 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
         :update
     end
   end
-
-  defp normalize_query_statement(statement),
-    do:
-      statement
-      |> String.trim_leading()
-      |> String.downcase()
 end
 
 defimpl String.Chars, for: Clickhousex.Query do
