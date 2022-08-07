@@ -37,6 +37,17 @@ defmodule Clickhousex.Codec.JSON do
     nil
   end
 
+  defp to_native(<<"SimpleAggregateFunction(", specs::binary>>, value) do
+    [_aggregate_function, underlying_type] =
+      specs
+      |> String.replace_suffix(")", "")
+      |> String.split(",", parts: 2)
+
+    underlying_type
+    |> String.trim_leading()
+    |> to_native(value)
+  end
+
   defp to_native(<<"Nullable(", type::binary>>, value) do
     type = String.replace_suffix(type, ")", "")
     to_native(type, value)
