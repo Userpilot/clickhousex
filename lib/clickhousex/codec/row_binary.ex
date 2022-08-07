@@ -96,6 +96,15 @@ defmodule Clickhousex.Codec.RowBinary do
     decode_row(rest, types, [value | row])
   end
 
+  defp to_type(<<"SimpleAggregateFunction(", args::binary>>) do
+    [_aggregate_function, underlying_type] =
+      args
+      |> String.replace_suffix(")", "")
+      |> String.split(~r/,\s*/, parts: 2)
+
+    to_type(underlying_type)
+  end
+
   defp to_type(<<"Nullable(", type::binary>>) do
     rest_type =
       type
