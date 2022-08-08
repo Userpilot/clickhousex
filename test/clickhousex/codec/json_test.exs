@@ -59,6 +59,29 @@ defmodule Clickhousex.Codec.JSONTest do
 
       assert [~N[1970-01-01 00:00:00]] == JSON.decode_row(row, column_types)
     end
+
+    test "decodes SimpleAggregateFunction(aggregate, Type)" do
+      unsigned_int32 = 100
+      datetime_iso = "2022-07-23 16:04:51"
+      datetime64_iso = "2022-08-07 14:10:42.997835"
+      array_of_nullables = ['5687', '481', nil, nil]
+
+      row = [unsigned_int32, datetime_iso, datetime64_iso, array_of_nullables]
+
+      column_types = [
+        "SimpleAggregateFunction(sum, UInt32)",
+        "SimpleAggregateFunction(min, DateTime)",
+        "SimpleAggregateFunction(max, DateTime64(6, 'Etc/UTC'))",
+        "SimpleAggregateFunction(any, Array(Nullable(String)))"
+      ]
+
+      assert [
+               unsigned_int32,
+               ~N[2022-07-23 16:04:51],
+               ~N[2022-08-07 14:10:42.997835],
+               array_of_nullables
+             ] == JSON.decode_row(row, column_types)
+    end
   end
 
   test "integration", ctx do
@@ -84,7 +107,10 @@ defmodule Clickhousex.Codec.JSONTest do
 
       date_val Date,
       date_time_val DateTime,
-      date_time_64_val DateTime64(6)
+      date_time_64_val DateTime64(6),
+
+      simple_aggregate_datetime SimpleAggregateFunction(min, DateTime),
+      simple_aggregate_datetime64 SimpleAggregateFunction(max, DateTime64(6, 'Etc/UTC'))
     )
 
     ENGINE = Memory
@@ -95,6 +121,9 @@ defmodule Clickhousex.Codec.JSONTest do
     date = Date.utc_today()
     datetime = DateTime.utc_now() |> DateTime.truncate(:second)
     datetime64 = DateTime.utc_now()
+
+    simple_aggregate_datetime64 = DateTime.utc_now() |> DateTime.add(-86_400, :second)
+    simple_aggregate_datetime = DateTime.truncate(simple_aggregate_datetime64, :second)
 
     row = [
       329,
@@ -112,21 +141,25 @@ defmodule Clickhousex.Codec.JSONTest do
       "f3e592bf-beba-411e-8a77-668ef76b1957",
       date,
       datetime,
-      datetime64
+      datetime64,
+      simple_aggregate_datetime,
+      simple_aggregate_datetime64
     ]
 
     assert {:ok, %Result{command: :updated, num_rows: 1}} =
              insert(
                ctx,
-               "INSERT INTO {{table}} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+               "INSERT INTO {{table}} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                row
              )
 
     assert {:ok, %Result{rows: rows}} = select_all(ctx)
 
     naive_datetime = DateTime.to_naive(datetime)
-
     naive_datetime64 = DateTime.to_naive(datetime64)
+
+    simple_aggregate_naive_datetime = DateTime.to_naive(simple_aggregate_datetime)
+    simple_aggregate_naive_datetime64 = DateTime.to_naive(simple_aggregate_datetime64)
 
     assert [
              [
@@ -145,7 +178,9 @@ defmodule Clickhousex.Codec.JSONTest do
                "f3e592bf-beba-411e-8a77-668ef76b1957",
                ^date,
                ^naive_datetime,
-               ^naive_datetime64
+               ^naive_datetime64,
+               ^simple_aggregate_naive_datetime,
+               ^simple_aggregate_naive_datetime64
              ]
            ] = rows
   end

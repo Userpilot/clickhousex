@@ -98,7 +98,7 @@ defmodule Clickhousex.QueryTest do
                ]
              )
 
-    assert {:ok, %Result{columns: column_names, rows: [row]}} = select_all(ctx)
+    assert {:ok, %Result{columns: _column_names, rows: [row]}} = select_all(ctx)
 
     naive_datetime =
       datetime
@@ -136,7 +136,8 @@ defmodule Clickhousex.QueryTest do
     """
 
     now_date = Date.utc_today()
-    now_datetime = DateTime.utc_now()
+    now_datetime = DateTime.utc_now() |> DateTime.truncate(:second)
+    now_naive_datetime = DateTime.to_naive(now_datetime)
 
     assert {:ok, %Result{}} = schema(ctx, create_statement)
 
@@ -155,6 +156,9 @@ defmodule Clickhousex.QueryTest do
              )
 
     assert {:ok, %Result{rows: [row_1, row_2]}} = select_all(ctx)
+
+    assert row_1 == [1, 2, "hi", now_date, now_naive_datetime]
+    assert row_2 == [2, nil, nil, nil, nil]
   end
 
   test "arrays", ctx do
