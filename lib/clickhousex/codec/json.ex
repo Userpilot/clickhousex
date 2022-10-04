@@ -60,7 +60,7 @@ defmodule Clickhousex.Codec.JSON do
     [key_type, value_type] =
       type
       |> String.replace_suffix(")", "")
-      |> String.split(", ", parts: 2)
+      |> String.split(",", parts: 2)
 
     value_map
     |> Enum.map(fn {key, value} ->
