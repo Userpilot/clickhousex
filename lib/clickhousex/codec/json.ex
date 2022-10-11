@@ -56,6 +56,19 @@ defmodule Clickhousex.Codec.JSON do
     Enum.map(value, &to_native(type, &1))
   end
 
+  defp to_native(<<"Map(", type::binary>>, value_map) do
+    [key_type, value_type] =
+      type
+      |> String.replace_suffix(")", "")
+      |> String.split(",", parts: 2)
+
+    value_map
+    |> Enum.map(fn {key, value} ->
+      {to_native(key_type, key), to_native(value_type, value)}
+    end)
+    |> Enum.into(%{})
+  end
+
   defp to_native("Tuple(" <> types, values) do
     types =
       types
