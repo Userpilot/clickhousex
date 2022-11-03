@@ -49,8 +49,8 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
     %{
       query
       | type: query_type,
-        param_count: param_count,
-        statement: String.replace(statement, @escaped_question_mark_literal, "?")
+        statement: statement,
+        param_count: param_count
     }
   end
 
