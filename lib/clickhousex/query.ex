@@ -68,13 +68,13 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
   end
 
   @doc """
-    Special handling for zero-param SELECT queries (i.e. raw queries) indicated by
-    `type: :select` and `param_count: 0` where the encoded query statement is to placed
+    Special handling for zero-param SELECT or ALTER queries (i.e. raw queries) indicated by
+    `type: :select or :alter` and `param_count: 0` where the encoded query statement is to placed
     inside of the POST Body instead of placing it on the query string to overcome existing issues
     where the encoded query is Too Large to fit into the query params of the Request's URI, which was observed
     frequently on our error logging system under the message: `Request-URI Too Large`.
   """
-  def encode(%Clickhousex.Query{type: :select, param_count: 0} = query, params, _opts) do
+  def encode(%Clickhousex.Query{type: query_type, param_count: 0} = query, params, _opts) when query_type in [:select, :alter] do
     {query_statement, _post_body_part} = do_parse(query)
     encoded_query_statement = @codec.encode(query, query_statement, params)
 
