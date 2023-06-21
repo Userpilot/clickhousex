@@ -1,6 +1,7 @@
 defmodule Clickhousex.Codec.JSON do
   @behaviour Clickhousex.Codec
 
+  @impl Clickhousex.Codec
   defdelegate encode(query, replacements, params), to: Clickhousex.Codec.Values
 
   @impl Clickhousex.Codec
@@ -61,6 +62,7 @@ defmodule Clickhousex.Codec.JSON do
       type
       |> String.replace_suffix(")", "")
       |> String.split(",", parts: 2)
+      |> Enum.map(&String.trim/1)
 
     value_map
     |> Enum.map(fn {key, value} ->
@@ -73,7 +75,8 @@ defmodule Clickhousex.Codec.JSON do
     types =
       types
       |> String.replace_suffix(")", "")
-      |> String.split(", ")
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
 
     values
     |> Enum.zip(types)
