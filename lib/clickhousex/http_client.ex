@@ -17,12 +17,12 @@ defmodule Clickhousex.HTTPClient do
   end
 
   defp send_p(
-         %Query{type: :select, param_count: 0} = query,
+         %Query{type: query_type, param_count: 0} = query,
          %HTTPRequest{} = request,
          base_address,
          database,
          opts
-       ) do
+       ) when query_type in [:select, :alter]  do
     command = parse_command(query)
 
     http_headers =
