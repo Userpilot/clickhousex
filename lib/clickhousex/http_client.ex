@@ -7,20 +7,6 @@ defmodule Clickhousex.HTTPClient do
 
   @req_headers [{"Content-Type", "text/plain"}]
 
-  defp do_post_http(base_address, post_body, req_headers, http_opts, async_opts) do
-    case async_opts[:async] do
-      false ->
-        HTTPoison.post(base_address, post_body, req_headers, http_opts)
-
-      true ->
-        spawn(fn ->
-          response  = HTTPoison.post(base_address, post_body, req_headers, http_opts)
-          maybe_notify(async_opts[:async_callback], response)
-        end)
-        {:async, :executing}
-    end
-  end
-
   def send(query, request, base_address, timeout, nil, _password, database, _opts) do
     send_p(query, request, base_address, database, [timeout: timeout, recv_timeout: timeout], [])
   end
@@ -91,6 +77,20 @@ defmodule Clickhousex.HTTPClient do
       {:ok, response} -> {:error, response.body}
       {:error, %{reason: reason}} -> {:error, reason}
       {:error, error} -> {:error, error}
+    end
+  end
+
+  defp do_post_http(base_address, post_body, req_headers, http_opts, async_opts) do
+    case async_opts[:async] do
+      false ->
+        HTTPoison.post(base_address, post_body, req_headers, http_opts)
+
+      true ->
+        spawn(fn ->
+          response  = HTTPoison.post(base_address, post_body, req_headers, http_opts)
+          maybe_notify(async_opts[:async_callback], response)
+        end)
+        {:async, :executing}
     end
   end
 
