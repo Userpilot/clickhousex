@@ -48,7 +48,8 @@ defmodule Clickhousex.Protocol do
              opts[:timeout],
              opts[:username],
              opts[:password],
-             opts[:database]
+             opts[:database],
+             opts
            ) do
       {:ok, %__MODULE__{conn_opts: opts, base_address: base_address}}
     end
@@ -165,15 +166,15 @@ defmodule Clickhousex.Protocol do
 
   ## Private functions
 
-  defp do_query(query, params, _opts, state) do
+  defp do_query(query, params, opts, state) do
     base_address = state.base_address
     username = state.conn_opts[:username]
     password = state.conn_opts[:password]
-    timeout = state.conn_opts[:timeout]
+    timeout = Keyword.get(opts,:timeout, state.conn_opts[:timeout])
     database = state.conn_opts[:database]
 
     query
-    |> Client.send(params, base_address, timeout, username, password, database)
+    |> Client.send(params, base_address, timeout, username, password, database, opts)
     |> wrap_errors()
     |> case do
       {:ok, :selected, columns, rows} ->
