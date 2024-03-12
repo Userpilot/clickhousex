@@ -12,10 +12,7 @@ defmodule Clickhousex.HTTPClient do
   end
 
   def send(query, request, base_address, timeout, username, password, database, opts \\ []) do
-    async = Keyword.get(opts, :async, false)
-    async_callback = Keyword.get(opts, :async_callback)
-    async_opts = [async: async, async_callback: async_callback]
-
+    async_opts = Keyword.take(opts, [:async, :async_callback])
     local_opts = [
       hackney: [basic_auth: {username, password}],
       timeout: timeout,
@@ -81,10 +78,10 @@ defmodule Clickhousex.HTTPClient do
   end
 
   defp do_post_http(base_address, post_body, req_headers, http_opts, async_opts) do
-    case async_opts[:async] do
+    async_flag = Keyword.get(async_opts, :async, false)
+    case async_flag do
       false ->
         HTTPoison.post(base_address, post_body, req_headers, http_opts)
-
       true ->
         spawn(fn ->
           response  = HTTPoison.post(base_address, post_body, req_headers, http_opts)
