@@ -14,13 +14,8 @@ defmodule Clickhousex.HTTPClient do
 
       true ->
         spawn(fn ->
-          with {:ok, %{status_code: 200, body: _body}} = response <-
-                 HTTPoison.post(base_address, post_body, req_headers, http_opts) do
-            maybe_notify(:ok, async_opts[:async_callback], response)
-          else
-            {:error, %{reason: _reason}} = response -> maybe_notify(:error, async_opts[:async_fallback], response)
-          end
-
+          response  = HTTPoison.post(base_address, post_body, req_headers, http_opts)
+          maybe_notify(async_opts[:async_callback], response)
         end)
         {:async, :executing}
     end
@@ -33,8 +28,7 @@ defmodule Clickhousex.HTTPClient do
   def send(query, request, base_address, timeout, username, password, database, opts) do
     async = Keyword.get(opts, :async, false)
     async_callback = Keyword.get(opts, :async_callback)
-    async_fallback = Keyword.get(opts, :async_fallback)
-    async_opts = [async: async, async_callback: async_callback, async_fallback: async_fallback]
+    async_opts = [async: async, async_callback: async_callback]
 
     local_opts = [
       hackney: [basic_auth: {username, password}],
@@ -121,8 +115,6 @@ defmodule Clickhousex.HTTPClient do
     })
   end
 
-  defp maybe_notify(:ok, nil, _resp), do: :noop
-  defp maybe_notify(:ok, async_callback, resp), do: async_callback.(resp)
-  defp maybe_notify(:error, nil, _resp), do: :noop
-  defp maybe_notify(:error, async_fallback, resp), do: async_fallback.(resp)
+  defp maybe_notify(nil, _resp), do: :noop
+  defp maybe_notify(async_callback, resp), do: async_callback.(resp)
 end
