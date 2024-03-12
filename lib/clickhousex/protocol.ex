@@ -48,8 +48,7 @@ defmodule Clickhousex.Protocol do
              opts[:timeout],
              opts[:username],
              opts[:password],
-             opts[:database],
-             opts
+             opts[:database]
            ) do
       {:ok, %__MODULE__{conn_opts: opts, base_address: base_address}}
     end

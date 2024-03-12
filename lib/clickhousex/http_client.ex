@@ -11,10 +11,9 @@ defmodule Clickhousex.HTTPClient do
     send_p(query, request, base_address, database, [timeout: timeout, recv_timeout: timeout], [])
   end
 
-  def send(query, request, base_address, timeout, username, password, database, opts) do
-    async = Keyword.get(opts, :async, false)
-    async_callback = Keyword.get(opts, :async_callback)
-    async_opts = [async: async, async_callback: async_callback]
+  def send(query, request, base_address, timeout, username, password, database, opts \\ []) do
+    async_opts = Keyword.take(opts, [:async, :async_callback])
+
 
     local_opts = [
       hackney: [basic_auth: {username, password}],
