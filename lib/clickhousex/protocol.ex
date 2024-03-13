@@ -166,11 +166,12 @@ defmodule Clickhousex.Protocol do
   ## Private functions
 
   defp do_query(query, params, opts, state) do
-    base_address = state.base_address
-    username = state.conn_opts[:username]
-    password = state.conn_opts[:password]
-    timeout = Keyword.get(opts,:timeout, state.conn_opts[:timeout])
-    database = state.conn_opts[:database]
+
+    %{base_address: base_address, conn_opts: conn_opts} = state
+    username = opts[:username] || conn_opts[:username]
+    password = opts[:password] || conn_opts[:password]
+    timeout = opts[:timeout] || conn_opts[:timeout]
+    database = opts[:database] || conn_opts[:database]
 
     query
     |> Client.send(params, base_address, timeout, username, password, database, opts)
