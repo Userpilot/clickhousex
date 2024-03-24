@@ -165,7 +165,7 @@ defmodule Clickhousex.Protocol do
 
   ## Private functions
 
-  defp do_query(query, params, _opts, state) do
+  defp do_query(query, params, opts, state) do
     %{base_address: base_address, conn_opts: conn_opts} = state
     username = opts[:username] || conn_opts[:username]
     password = opts[:password] || conn_opts[:password]
