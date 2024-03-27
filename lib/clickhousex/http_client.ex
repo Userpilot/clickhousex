@@ -22,7 +22,7 @@ defmodule Clickhousex.HTTPClient do
          base_address,
          database,
          opts
-       ) when query_type in [:select, :alter]  do
+       ) when query_type in [:select, :alter, :update]  do
     command = parse_command(query)
 
     http_headers =
