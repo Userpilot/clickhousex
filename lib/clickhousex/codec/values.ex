@@ -1,11 +1,11 @@
 defmodule Clickhousex.Codec.Values do
   alias Clickhousex.Query
 
-  def encode(%Query{param_count: 0, type: :insert}, _, []) do
+  def encode(%Query{param_count: 0, statement: statement, type: :insert}, _, []) do
     # An insert query's arguments go into the post body and the query part goes into the query string.
     # If we don't have any arguments, we don't have to encode anything, but we don't want to return
     # anything here because we'll duplicate the query into both the query string and post body
-    ""
+    statement
   end
 
   def encode(%Query{param_count: 0, statement: statement}, _, []) do
