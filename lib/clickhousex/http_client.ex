@@ -12,6 +12,8 @@ defmodule Clickhousex.HTTPClient do
   end
 
   def send(query, request, base_address, timeout, username, password, database) do
+    # Enable TCP keepalive to prevent connection issues for long running queries(idle connectinos terminated by NAT Gateway)
+    # https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-troubleshooting.html?utm_source=chatgpt.com#nat-gateway-troubleshooting-timeout
     opts = [
       hackney: [
         basic_auth: {username, password},
