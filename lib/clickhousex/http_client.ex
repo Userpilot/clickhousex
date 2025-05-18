@@ -12,7 +12,28 @@ defmodule Clickhousex.HTTPClient do
   end
 
   def send(query, request, base_address, timeout, username, password, database) do
-    opts = [hackney: [basic_auth: {username, password}], timeout: timeout, recv_timeout: timeout]
+    # Enable TCP keepalive to prevent connection issues for long running queries(idle connectinos terminated by NAT Gateway)
+    # https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-troubleshooting.html?utm_source=chatgpt.com#nat-gateway-troubleshooting-timeout
+    opts = [
+      hackney: [
+        basic_auth: {username, password},
+        connect_timeout: timeout,
+        recv_timeout: timeout,
+        keepalive: true,
+
+        ssl_options: [
+          keepalive: true,
+          verify: :verify_peer,
+          cacerts: :certifi.cacerts(),
+          customize_hostname_check: [
+            match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+          ]
+        ]
+      ],
+
+      timeout: timeout,
+      recv_timeout: timeout
+    ]
     send_p(query, request, base_address, database, opts)
   end
 
