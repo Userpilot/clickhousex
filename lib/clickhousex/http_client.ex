@@ -4,6 +4,7 @@ defmodule Clickhousex.HTTPClient do
   @moduledoc false
 
   @codec Application.get_env(:clickhousex, :codec, Clickhousex.Codec.JSON)
+  @compress Application.get_env(:clickhousex, :compress, false)
 
   @req_headers [{"Content-Type", "text/plain"}]
 
@@ -51,8 +52,9 @@ defmodule Clickhousex.HTTPClient do
 
     with {:ok, %{status_code: 200, body: body}} <-
            HTTPoison.post(base_address, request.post_data, http_headers, opts),
+          decompressed_body <- maybe_gunzip(body, @compress),
          {:command, :selected} <- {:command, command},
-         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(decompressed_body) do
       {:ok, command, column_names, rows}
     else
       {:command, :created} -> {:ok, :created}
@@ -76,8 +78,9 @@ defmodule Clickhousex.HTTPClient do
 
     with {:ok, %{status_code: 200, body: body}} <-
            HTTPoison.post(base_address, post_body, @req_headers, http_opts),
+         decompressed_body <- maybe_gunzip(body, @compress),
          {:command, :selected} <- {:command, command},
-         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(decompressed_body) do
       {:ok, command, column_names, rows}
     else
       {:command, :created} -> {:ok, :created}
@@ -107,5 +110,15 @@ defmodule Clickhousex.HTTPClient do
       "X-ClickHouse-Database" => database,
       "X-ClickHouse-Format" => response_format
     })
+    |> maybe_append_compression_header(@compress)
   end
+
+  defp maybe_append_compression_header(headers, false), do: headers
+
+    defp maybe_append_compression_header(headers, true),
+      do: Map.put(headers, "accept-encoding", "gzip")
+
+    defp maybe_gunzip(body, true), do: :zlib.gunzip(body)
+    defp maybe_gunzip(body, false), do: body
+
 end
