@@ -67,9 +67,7 @@ defmodule Clickhousex.HTTPClient do
 
   defp send_p(query, request, base_address, database, opts) do
     command = parse_command(query)
-
     post_body = maybe_append_format(query, request)
-
     http_opts =
       Keyword.put(opts, :params, %{
         database: database,
@@ -115,10 +113,10 @@ defmodule Clickhousex.HTTPClient do
 
   defp maybe_append_compression_header(headers, false), do: headers
 
-    defp maybe_append_compression_header(headers, true),
-      do: Map.put(headers, "accept-encoding", "gzip")
+  defp maybe_append_compression_header(headers, true),
+    do: Map.put(headers, "accept-encoding", "gzip")
 
-    defp maybe_gunzip(body, true), do: :zlib.gunzip(body)
-    defp maybe_gunzip(body, false), do: body
+  defp maybe_gunzip(body, true), do: :zlib.gunzip(body)
+  defp maybe_gunzip(body, false), do: body
 
 end
