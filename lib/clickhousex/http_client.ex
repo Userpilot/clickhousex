@@ -49,7 +49,7 @@ defmodule Clickhousex.HTTPClient do
 
   defp send_p(query, request, base_address, database, opts) do
     command = parse_command(query)
-    post_body = append_format(query, request)
+    post_body = maybe_append_format(query, request)
 
     http_opts =
       Keyword.put(opts, :params, %{
