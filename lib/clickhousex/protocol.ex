@@ -29,7 +29,8 @@ defmodule Clickhousex.Protocol do
     database: "default",
     username: nil,
     password: nil,
-    timeout: Clickhousex.timeout()
+    timeout: Clickhousex.timeout(),
+    hackney_pool: :default
   ]
 
   @impl DBConnection
@@ -48,7 +49,8 @@ defmodule Clickhousex.Protocol do
              opts[:timeout],
              opts[:username],
              opts[:password],
-             opts[:database]
+             opts[:database],
+             opts[:hackney_pool]
            ) do
       {:ok, %__MODULE__{conn_opts: opts, base_address: base_address}}
     end
@@ -171,9 +173,10 @@ defmodule Clickhousex.Protocol do
     password = opts[:password] || conn_opts[:password]
     timeout = opts[:timeout] || conn_opts[:timeout]
     database = opts[:database] || conn_opts[:database]
+    hackney_pool = opts[:hackney_pool] || conn_opts[:hackney_pool]
 
     query
-    |> Client.send(params, base_address, timeout, username, password, database)
+    |> Client.send(params, base_address, timeout, username, password, database, hackney_pool)
     |> wrap_errors()
     |> case do
       {:ok, :selected, columns, rows} ->
