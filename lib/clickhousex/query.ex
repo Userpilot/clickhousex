@@ -112,8 +112,8 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
     cond do
       starts_with_keyword?(statement, @create_query_keyword) -> :create
       starts_with_keyword?(statement, @insert_query_keyword) -> :insert
-      Regex.match?(@select_query_regex, statement) -> :select
       Regex.match?(@alter_query_regex, statement) -> :alter
+      Regex.match?(@select_query_regex, statement) -> :select
       true -> :update
     end
   end
