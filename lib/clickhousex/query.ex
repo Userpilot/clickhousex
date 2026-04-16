@@ -28,10 +28,10 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
 
   @values_regex ~r/VALUES/i
   @select_query_regex ~r/\bSELECT\b/i
-  @alter_query_regex ~r/\bALTER\b/i
 
   @create_query_keyword "CREATE"
   @insert_query_keyword "INSERT"
+  @alter_query_keyword "ALTER"
 
   @escaped_question_mark_literal "\\?"
 
@@ -74,7 +74,8 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
     where the encoded query is Too Large to fit into the query params of the Request's URI, which was observed
     frequently on our error logging system under the message: `Request-URI Too Large`.
   """
-  def encode(%Clickhousex.Query{type: query_type, param_count: 0} = query, params, _opts) when query_type in [:select, :alter, :update] do
+  def encode(%Clickhousex.Query{type: query_type, param_count: 0} = query, params, _opts)
+      when query_type in [:select, :alter, :update] do
     {query_statement, _post_body_part} = do_parse(query)
     encoded_query_statement = @codec.encode(query, query_statement, params)
 
@@ -112,7 +113,7 @@ defimpl DBConnection.Query, for: Clickhousex.Query do
     cond do
       starts_with_keyword?(statement, @create_query_keyword) -> :create
       starts_with_keyword?(statement, @insert_query_keyword) -> :insert
-      Regex.match?(@alter_query_regex, statement) -> :alter
+      starts_with_keyword?(statement, @alter_query_keyword) -> :alter
       Regex.match?(@select_query_regex, statement) -> :select
       true -> :update
     end
