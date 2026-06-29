@@ -15,10 +15,28 @@ defmodule Clickhousex.Codec.JSONTest do
         assert [^value] = JSON.decode_row(row, column_types)
       end
 
+      test "decodes unquoted UInt#{size}" do
+        size = unquote(size)
+        value = floor(:math.pow(2, size)) - 1
+        row = [value]
+        column_types = ["UInt#{size}"]
+
+        assert [^value] = JSON.decode_row(row, column_types)
+      end
+
       test "decodes Int#{size}" do
         size = unquote(size)
         value = floor(:math.pow(2, size - 1)) - 1
         row = ["#{value}"]
+        column_types = ["Int#{size}"]
+
+        assert [^value] = JSON.decode_row(row, column_types)
+      end
+
+      test "decodes unquoted Int#{size}" do
+        size = unquote(size)
+        value = floor(:math.pow(2, size - 1)) - 1
+        row = [value]
         column_types = ["Int#{size}"]
 
         assert [^value] = JSON.decode_row(row, column_types)
@@ -81,6 +99,36 @@ defmodule Clickhousex.Codec.JSONTest do
                ~N[2022-08-07 14:10:42.997835],
                array_of_nullables
              ] == JSON.decode_row(row, column_types)
+    end
+
+    test "decodes unquoted Nullable(Int64)" do
+      value = 9_223_372_036_854_775_807
+      row = [value]
+      column_types = ["Nullable(Int64)"]
+
+      assert [^value] = JSON.decode_row(row, column_types)
+    end
+
+    test "decodes unquoted Array(Int64)" do
+      values = [1, 9_223_372_036_854_775_807]
+      row = [values]
+      column_types = ["Array(Int64)"]
+
+      assert [^values] = JSON.decode_row(row, column_types)
+    end
+  end
+
+  describe "decode" do
+    test "decodes unquoted Int64 JSONCompact responses" do
+      response = """
+      {
+        "meta": [{"name": "value", "type": "Int64"}],
+        "data": [[42]],
+        "rows": 1
+      }
+      """
+
+      assert {:ok, %{column_names: ["value"], rows: [[42]], count: 1}} = JSON.decode(response)
     end
   end
 
