@@ -25,6 +25,42 @@ defmodule Clickhousex.Codec.JSONTest do
       end
     end
 
+    test "decodes unquoted UInt64" do
+      value = 18_446_744_073_709_551_615
+
+      assert [^value] = JSON.decode_row([value], ["UInt64"])
+    end
+
+    test "decodes unquoted Int64" do
+      value = 9_223_372_036_854_775_807
+
+      assert [^value] = JSON.decode_row([value], ["Int64"])
+    end
+
+    test "decodes unquoted Nullable(Int64)" do
+      value = 9_223_372_036_854_775_807
+
+      assert [^value] = JSON.decode_row([value], ["Nullable(Int64)"])
+    end
+
+    test "decodes unquoted Array(Int64)" do
+      values = [1, 9_223_372_036_854_775_807]
+
+      assert [^values] = JSON.decode_row([values], ["Array(Int64)"])
+    end
+
+    test "decodes unquoted Int64 JSONCompact responses" do
+      response = """
+      {
+        "meta": [{"name": "value", "type": "Int64"}],
+        "data": [[42]],
+        "rows": 1
+      }
+      """
+
+      assert {:ok, %{column_names: ["value"], rows: [[42]], count: 1}} = JSON.decode(response)
+    end
+
     for size <- [32, 64] do
       test "decodes Float#{size}" do
         size = unquote(size)

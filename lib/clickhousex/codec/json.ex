@@ -88,10 +88,6 @@ defmodule Clickhousex.Codec.JSON do
     1.0 * value
   end
 
-  defp to_native("Int64", value) do
-    String.to_integer(value)
-  end
-
   defp to_native("Date", value) do
     {:ok, date} = Date.from_iso8601(value)
     date
@@ -103,8 +99,16 @@ defmodule Clickhousex.Codec.JSON do
     end
   end
 
+  defp to_native("UInt" <> _, value) when is_integer(value) do
+    value
+  end
+
   defp to_native("UInt" <> _, value) when is_bitstring(value) do
     String.to_integer(value)
+  end
+
+  defp to_native("Int" <> _, value) when is_integer(value) do
+    value
   end
 
   defp to_native("Int" <> _, value) when is_bitstring(value) do
