@@ -15,15 +15,19 @@ defmodule Clickhousex.HTTPClient do
   def send(query, request, base_address, timeout, username, password, database) do
     # Enable TCP keepalive to prevent connection issues for long running queries(idle connectinos terminated by NAT Gateway)
     # https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-troubleshooting.html?utm_source=chatgpt.com#nat-gateway-troubleshooting-timeout
+    #
+    # `keepalive` MUST live in `connect_options` (applied at gen_tcp:connect). Since
+    # hackney 1.22 the TLS handshake is an upgrade of an already-connected TCP socket
+    # (`ssl:connect(Sock, SSLOpts)`), which silently ignores TCP-level options placed
+    # in `ssl_options` - putting it there breaks keepalive without any error.
     opts = [
       hackney: [
         basic_auth: {username, password},
         connect_timeout: timeout,
         recv_timeout: timeout,
-        keepalive: true,
+        connect_options: [keepalive: true],
 
         ssl_options: [
-          keepalive: true,
           verify: :verify_peer,
           cacerts: :certifi.cacerts(),
           customize_hostname_check: [
