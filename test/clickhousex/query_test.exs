@@ -326,4 +326,14 @@ defmodule Clickhousex.QueryTest do
                1
              ])
   end
+
+  test "a failed select returns the server's error text", ctx do
+    assert {:error, %Clickhousex.Error{message: message}} =
+             select(
+               ctx,
+               "SELECT count() FROM numbers(1000000) GROUP BY number % 1000 SETTINGS max_memory_usage = 1"
+             )
+
+    assert message =~ "Code: 241"
+  end
 end
