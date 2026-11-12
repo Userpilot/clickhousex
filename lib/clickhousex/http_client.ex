@@ -55,10 +55,9 @@ defmodule Clickhousex.HTTPClient do
       build_http_post_headers(database: database, response_format: @codec.response_format())
 
     with {:ok, %{status_code: 200, body: body}} <-
-           HTTPoison.post(base_address, request.post_data, http_headers, opts),
-          decompressed_body <- maybe_gunzip(body, @compress),
+           post(base_address, request.post_data, http_headers, opts),
          {:command, :selected} <- {:command, command},
-         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(decompressed_body) do
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
       {:ok, command, column_names, rows}
     else
       {:command, :created} -> {:ok, :created}
@@ -79,10 +78,9 @@ defmodule Clickhousex.HTTPClient do
       })
 
     with {:ok, %{status_code: 200, body: body}} <-
-           HTTPoison.post(base_address, post_body, @req_headers, http_opts),
-         decompressed_body <- maybe_gunzip(body, @compress),
+           post(base_address, post_body, @req_headers, http_opts),
          {:command, :selected} <- {:command, command},
-         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(decompressed_body) do
+         {:ok, %{column_names: column_names, rows: rows}} <- @codec.decode(body) do
       {:ok, command, column_names, rows}
     else
       {:command, :created} -> {:ok, :created}
@@ -91,6 +89,22 @@ defmodule Clickhousex.HTTPClient do
       {:error, %{reason: reason}} -> {:error, reason}
       {:error, error} -> {:error, error}
     end
+  end
+
+  defp post(url, body, headers, opts) do
+    with {:ok, response} <- HTTPoison.post(url, body, headers, opts) do
+      {:ok, %{response | body: decode_body(response)}}
+    end
+  end
+
+  defp decode_body(%{headers: headers, body: body}) do
+    if gzip?(headers), do: :zlib.gunzip(body), else: body
+  end
+
+  defp gzip?(headers) do
+    Enum.any?(headers, fn {name, value} ->
+      String.downcase(name) == "content-encoding" and String.downcase(value) == "gzip"
+    end)
   end
 
   defp parse_command(%Query{type: :create}), do: :created
@@ -119,8 +133,5 @@ defmodule Clickhousex.HTTPClient do
 
   defp maybe_append_compression_header(headers, true),
     do: Map.put(headers, "accept-encoding", "gzip")
-
-  defp maybe_gunzip(body, true), do: :zlib.gunzip(body)
-  defp maybe_gunzip(body, false), do: body
 
 end
